@@ -1,0 +1,53 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}{{ title }} - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="form-container-wrapper animate-fade-in">
+    <div class="glass-panel form-card">
+        <div class="form-card-header">
+            <a href="{% url 'admin_users' %}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to User Directory</a>
+            <h1>{{ title }}</h1>
+            <p class="subtitle">Update user information and system permission configurations.</p>
+        </div>
+
+        <form method="post" class="custom-form">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="form-group {% if field.errors %}has-error{% endif %}">
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    <div class="form-check-wrapper mt-3">
+                        <label class="form-check-label-custom">
+                            {{ field }}
+                            <span class="form-check-checkbox-custom"></span>
+                            {{ field.label }}
+                        </label>
+                    </div>
+                {% else %}
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        {{ field.label }}
+                        {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                {% endif %}
+                
+                {% if field.help_text %}
+                    <small class="form-help-text">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <span class="error-feedback">{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <div class="form-actions mt-4 pt-3 border-top">
+                <button type="submit" class="btn btn-primary btn-glow">
+                    <i class="fa-solid fa-check"></i> {% if edit_mode %}Save Changes{% else %}Create User{% endif %}
+                </button>
+                <a href="{% url 'admin_users' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

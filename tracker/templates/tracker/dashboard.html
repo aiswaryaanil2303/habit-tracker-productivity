@@ -1,0 +1,187 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Dashboard - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="dashboard-header animate-fade-in">
+    <div class="welcome-section">
+        <h1>Welcome Back, {{ user.username }}!</h1>
+        <p class="subtitle">Here's your productivity overview for today, <strong class="text-accent">{{ today|date:"F d, Y" }}</strong>.</p>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid animate-fade-in" style="animation-delay: 0.1s;">
+    <!-- Card 1: Today's Progress -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-primary-light">
+            <i class="fa-solid fa-circle-notch text-primary fa-spin-slow"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Today's Progress</h3>
+            <div class="stat-number-wrapper">
+                <span class="stat-number" id="stats-percentage">{{ completion_percentage }}%</span>
+            </div>
+            <p class="stat-desc" id="stats-ratio">{{ completed_count }} of {{ total_habits }} habits completed</p>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill bg-primary" id="stats-progress-bar" style="width: {{ completion_percentage }}%"></div>
+        </div>
+    </div>
+
+    <!-- Card 2: Highest Active Streak -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-warning-light">
+            <i class="fa-solid fa-fire text-warning animate-bounce"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Best Active Streak</h3>
+            <div class="stat-number-wrapper">
+                <span class="stat-number" id="best-streak-display">0 days</span>
+            </div>
+            <p class="stat-desc">Keep the flame burning!</p>
+        </div>
+    </div>
+
+    <!-- Card 3: Completion Efficiency -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-success-light">
+            <i class="fa-solid fa-gauge-high text-success"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Overall Productivity</h3>
+            <div class="stat-number-wrapper">
+                <span class="stat-number">0%</span>
+            </div>
+            <p class="stat-desc">Average completion over 30 days</p>
+        </div>
+    </div>
+</div>
+
+
+<div class="dashboard-layout animate-fade-in" style="animation-delay: 0.2s;">
+    <!-- Left Column: Today's Checklist -->
+    <section class="dashboard-main glass-panel">
+        <div class="panel-header">
+            <h2>Today's Habits Checklist</h2>
+            <span class="badge badge-pill badge-primary-light" id="checklist-counter">{{ completed_count }}/{{ total_habits }} Done</span>
+        </div>
+        
+        <div class="habit-checklist" id="habit-checklist">
+            {% if habit_data %}
+                {% for item in habit_data %}
+                <div class="habit-item {% if item.completed_today %}completed{% endif %}" data-habit-id="{{ item.object.id }}">
+                    <label class="checkbox-container">
+                        <input type="checkbox" class="habit-toggle-checkbox" {% if item.completed_today %}checked{% endif %} data-habit-id="{{ item.object.id }}">
+                        <span class="checkmark"></span>
+                    </label>
+                    <div class="habit-details">
+                        <div class="habit-title-row">
+                            <span class="habit-title">{{ item.object.title }}</span>
+                            <span class="category-badge category-{{ item.object.category }}">
+                                {{ item.object.get_category_display }}
+                            </span>
+                        </div>
+                        {% if item.object.description %}
+                            <p class="habit-desc">{{ item.object.description }}</p>
+                        {% endif %}
+                        <div class="habit-meta">
+                            {% if item.object.reminder_time %}
+                                <span class="meta-item"><i class="fa-regular fa-clock"></i> {{ item.object.reminder_time|time:"g:i A" }}</span>
+                            {% endif %}
+                            <span class="meta-item"><i class="fa-solid fa-calendar-day"></i> {{ item.object.get_goal_type_display }}</span>
+                        </div>
+                    </div>
+                    <div class="habit-streak-status">
+                        <i class="fa-solid fa-fire fire-icon"></i>
+                        <span class="streak-count" id="streak-count-{{ item.object.id }}">{{ item.streak }}</span>d streak
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fa-solid fa-seedling empty-icon"></i>
+                    <p>No habits created yet. Start growing your routine today!</p>
+                    <a href="{% url 'habit_create' %}" class="btn btn-primary btn-sm">Create Your First Habit</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Right Column: Missed Habits & Quick actions -->
+    <aside class="dashboard-sidebar">
+        <!-- Missed Habits Tracker -->
+        <div class="glass-panel missed-habits-panel">
+            <div class="panel-header">
+                <h2>Missed Habits</h2>
+                <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+            </div>
+            <div class="missed-habits-list">
+                {% if missed_habits %}
+                    {% for item in missed_habits %}
+                    <div class="missed-habit-item">
+                        <div class="missed-info">
+                            <span class="missed-title">{{ item.habit.title }}</span>
+                            <span class="missed-date"><i class="fa-regular fa-calendar-times"></i> {{ item.date|date:"l, M d" }} ({{ item.days_ago }}d ago)</span>
+                        </div>
+                        <span class="missed-tag">Missed</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state-mini">
+                        <i class="fa-solid fa-circle-check text-success-light empty-icon-mini"></i>
+                        <p>Incredible! You haven't missed any active habits in the last 7 days. Keep it up!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Tips & Inspiration -->
+        <div class="glass-panel tips-panel">
+            <div class="panel-header">
+                <h2>Daily Spark</h2>
+                <i class="fa-solid fa-lightbulb text-accent"></i>
+            </div>
+            <div class="tip-body">
+                <blockquote class="inspiration-quote">
+                    "We are what we repeatedly do. Excellence, then, is not an act, but a habit."
+                </blockquote>
+                <cite class="inspiration-author">— Aristotle</cite>
+            </div>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set dynamic values that were calculated inside Javascript for template simplicity
+    document.addEventListener("DOMContentLoaded", function() {
+        const streaks = [
+            {% for item in habit_data %}
+                {{ item.streak }},
+            {% endfor %}
+            0
+        ];
+        const maxStreak = Math.max(...streaks);
+        document.getElementById('best-streak-display').innerText = maxStreak + " days";
+
+        const rates = [
+            {% for item in habit_data %}
+                {{ item.completion_rate }},
+            {% endfor %}
+        ];
+        let avgRate = 0;
+        if (rates.length > 0) {
+            const sum = rates.reduce((a, b) => a + b, 0);
+            avgRate = Math.round(sum / rates.length);
+        }
+        
+        // Find Card 3 metric element and update it
+        const card3Val = document.querySelector('.stats-grid .stat-card:nth-child(3) .stat-number');
+        if (card3Val) {
+            card3Val.innerText = avgRate + "%";
+        }
+    });
+</script>
+{% endblock %}

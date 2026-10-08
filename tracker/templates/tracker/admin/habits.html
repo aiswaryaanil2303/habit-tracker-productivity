@@ -1,0 +1,113 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Manage Habits - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="habits-header-row animate-fade-in">
+    <div>
+        <h1>Habit Registry Monitor</h1>
+        <p class="subtitle">Supervise and moderate habits created across the platform.</p>
+    </div>
+</div>
+
+<!-- Search & Filtering -->
+<div class="glass-panel filters-bar animate-fade-in mt-4" style="animation-delay: 0.1s;">
+    <form method="get" class="search-form">
+        <div class="input-icon-wrapper">
+            <i class="fa-solid fa-magnifying-glass input-icon"></i>
+            <input type="text" name="q" value="{{ query }}" class="form-control field-with-icon" placeholder="Search by habit title, description, or username...">
+        </div>
+        {% if category_filter %}
+            <input type="hidden" name="category" value="{{ category_filter }}">
+        {% endif %}
+    </form>
+    
+    <div class="filter-actions-group">
+        <form method="get" class="d-flex align-items-center gap-2">
+            {% if query %}
+                <input type="hidden" name="q" value="{{ query }}">
+            {% endif %}
+            <select name="category" onchange="this.form.submit()" class="form-control" style="padding: 0.5rem 1rem; height: auto;">
+                <option value="">Filter by Category</option>
+                {% for code, label in categories %}
+                    <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        
+        {% if query or category_filter %}
+            <a href="{% url 'admin_habits' %}" class="btn btn-secondary btn-sm">Clear Filters</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Habits Registry Table -->
+<div class="glass-panel animate-fade-in mt-4" style="animation-delay: 0.15s; padding: 1rem;">
+    {% if habits %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Habit</th>
+                        <th>Owner</th>
+                        <th>Category</th>
+                        <th>Goal Target</th>
+                        <th>Created</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in habits %}
+                    <tr>
+                        <td>
+                            <strong class="text-white">{{ h.title }}</strong>
+                            {% if h.description %}
+                                <p class="text-muted" style="font-size:0.75rem; margin-top:0.1rem;">{{ h.description }}</p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'admin_user_report' h.user.id %}" class="text-primary font-weight-bold" style="text-decoration:underline;">
+                                {{ h.user.username }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="category-badge category-{{ h.category }}">
+                                {{ h.get_category_display }}
+                            </span>
+                        </td>
+                        <td>{{ h.get_goal_type_display }} ({{ h.goal_value }}x)</td>
+                        <td>{{ h.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            {% if h.is_archived %}
+                                <span class="badge" style="background:rgba(100, 116, 139, 0.15); color:#94a3b8;">Archived</span>
+                            {% elif h.is_active %}
+                                <span class="badge badge-active">Active</span>
+                            {% else %}
+                                <span class="badge" style="background:rgba(239, 68, 68, 0.15); color:#fca5a5;">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions-cell">
+                            <!-- Toggle Archive -->
+                            <a href="{% url 'habit_archive' h.id %}" class="btn-icon btn-edit" title="{% if h.is_archived %}Restore Habit{% else %}Archive Habit{% endif %}">
+                                <i class="fa-solid {% if h.is_archived %}fa-box-open{% else %}fa-box{% endif %}"></i>
+                            </a>
+                            <!-- Delete inappropriate habit -->
+                            <a href="{% url 'admin_habit_delete' h.id %}" class="btn-icon btn-delete" title="Delete Habit (Inappropriate)">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state text-center py-5">
+            <i class="fa-solid fa-list-check fa-3x text-muted mb-3"></i>
+            <h3>No habits registered</h3>
+            <p class="text-muted">No habits match your filters in the platform directory.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

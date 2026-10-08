@@ -1,0 +1,42 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}{{ title }} - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="form-container-wrapper animate-fade-in">
+    <div class="glass-panel form-card">
+        <div class="form-card-header">
+            <a href="{% url 'habits' %}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Habits</a>
+            <h1>{{ title }}</h1>
+            <p class="subtitle">Enter the details below to define your routine.</p>
+        </div>
+
+        <form method="post" class="custom-form">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="form-group {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="form-help-text">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <span class="error-feedback">{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-glow">
+                    <i class="fa-solid fa-check"></i> {% if edit %}Save Changes{% else %}Create Habit{% endif %}
+                </button>
+                <a href="{% url 'habits' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

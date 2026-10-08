@@ -1,0 +1,129 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Profile Settings - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="profile-header-row animate-fade-in">
+    <div>
+        <h1>Profile Settings</h1>
+        <p class="subtitle">Customize your personal profile and preferences.</p>
+    </div>
+</div>
+
+<div class="profile-layout animate-fade-in" style="animation-delay: 0.1s;">
+    <!-- Left Panel: Avatar & Info Summary -->
+    <div class="glass-panel profile-sidebar text-center">
+        <div class="profile-avatar-wrapper">
+            <div class="profile-avatar-large" id="avatar-preview" style="background-color: {{ user.profile.avatar_color }}">
+                {{ user.username|slice:":1"|upper }}
+            </div>
+        </div>
+        <h2 class="profile-username">{{ user.username }}</h2>
+        <p class="profile-email text-muted">{{ user.email|default:"No email set" }}</p>
+        
+        {% if user.profile.bio %}
+            <p class="profile-bio-summary">"{{ user.profile.bio }}"</p>
+        {% endif %}
+        
+        <div class="profile-stats">
+            <div class="profile-stat-box">
+                <span class="stat-number">{{ user.habits.count }}</span>
+                <span class="stat-label">Total Habits</span>
+            </div>
+            <div class="profile-stat-box">
+                <span class="stat-number">
+                    <!-- Display Member Since -->
+                    {{ user.date_joined|date:"M Y" }}
+                </span>
+                <span class="stat-label">Member Since</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Edit Form -->
+    <div class="glass-panel profile-main">
+        <div class="panel-header">
+            <h2>Edit Profile & Credentials</h2>
+        </div>
+        
+        <form method="post" class="custom-form">
+            {% csrf_token %}
+            
+            <h3 class="section-title"><i class="fa-regular fa-id-card"></i> Personal Information</h3>
+            <div class="form-row">
+                <div class="form-group col">
+                    <label class="form-label">First Name</label>
+                    {{ u_form.first_name }}
+                    {% for error in u_form.first_name.errors %}
+                        <span class="error-feedback">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="form-group col">
+                    <label class="form-label">Last Name</label>
+                    {{ u_form.last_name }}
+                    {% for error in u_form.last_name.errors %}
+                        <span class="error-feedback">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                {{ u_form.email }}
+                {% for error in u_form.email.errors %}
+                    <span class="error-feedback">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <h3 class="section-title"><i class="fa-solid fa-sliders"></i> Habit Tracker Settings</h3>
+            <div class="form-group">
+                <label class="form-label">Bio (Description)</label>
+                {{ p_form.bio }}
+                {% for error in p_form.bio.errors %}
+                    <span class="error-feedback">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="form-row align-items-center">
+                <div class="form-group col-auto">
+                    <label class="form-label">Avatar Glow Color</label>
+                    <div class="color-picker-container">
+                        {{ p_form.avatar_color }}
+                    </div>
+                </div>
+                <div class="form-group col">
+                    <div class="form-check-wrapper mt-4">
+                        <label class="form-check-label-custom">
+                            {{ p_form.reminders_enabled }}
+                            <span class="form-check-checkbox-custom"></span>
+                            Enable Daily Reminders
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions border-top mt-4 pt-3">
+                <button type="submit" class="btn btn-primary btn-glow">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Profile Settings
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Live update color circle when colorpicker changes
+    document.addEventListener("DOMContentLoaded", function() {
+        const colorPicker = document.querySelector('input[type="color"]');
+        const avatarPreview = document.getElementById('avatar-preview');
+        
+        if (colorPicker && avatarPreview) {
+            colorPicker.addEventListener('input', function() {
+                avatarPreview.style.backgroundColor = this.value;
+            });
+        }
+    });
+</script>
+{% endblock %}

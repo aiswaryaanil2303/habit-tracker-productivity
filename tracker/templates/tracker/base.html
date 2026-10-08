@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HabitGrow - Habit Tracker & Productivity{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'tracker/styles.css' %}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-square-check brand-icon animate-pulse"></i>
+                </div>
+                <h2>HabitGrow</h2>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="user-quick-profile">
+                <div class="user-avatar" style="background-color: {{ user.profile.avatar_color }}">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+                <div class="user-info">
+                    <span class="user-name">{{ user.username }}</span>
+                    <span class="user-role">Premium Member</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <nav class="sidebar-menu">
+                <ul>
+                    {% if user.is_authenticated %}
+                    <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <a href="{% url 'dashboard' %}">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'habits' or 'habit_' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'habits' %}">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span>My Habits</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'template_gallery' %}active{% endif %}">
+                        <a href="{% url 'template_gallery' %}">
+                            <i class="fa-solid fa-box-open"></i>
+                            <span>Templates Gallery</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                        <a href="{% url 'profile' %}">
+                            <i class="fa-solid fa-user-gear"></i>
+                            <span>Profile & Settings</span>
+                        </a>
+                    </li>
+                    {% if user.is_staff %}
+                    <li class="sidebar-section-header">Admin Control</li>
+                    <li class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                        <a href="{% url 'admin_dashboard' %}">
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span>Admin Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'admin_users' or 'admin_user_' in request.resolver_match.url_name %}active{% endif %}">
+                        <a href="{% url 'admin_users' %}">
+                            <i class="fa-solid fa-users"></i>
+                            <span>User Management</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'admin_habits' %}active{% endif %}">
+                        <a href="{% url 'admin_habits' %}">
+                            <i class="fa-solid fa-bars-progress"></i>
+                            <span>Habit Management</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'admin_templates' %}active{% endif %}">
+                        <a href="{% url 'admin_templates' %}">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                            <span>Templates Manager</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="logout-item">
+                        <form action="{% url 'logout' %}" method="post" id="logout-form" style="display: none;">
+                            {% csrf_token %}
+                        </form>
+                        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Sign Out</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="{% if request.resolver_match.url_name == 'login' %}active{% endif %}">
+                        <a href="{% url 'login' %}">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            <span>Sign In</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'register' %}active{% endif %}">
+                        <a href="{% url 'register' %}">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Register</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>&copy; 2026 HabitGrow</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header bar -->
+            <header class="content-header">
+                <div class="header-search">
+                    <button class="mobile-toggle-btn" id="mobile-toggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <span class="system-time"><i class="fa-regular fa-clock"></i> <span id="clock-display"></span></span>
+                </div>
+                <div class="header-actions">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'habit_create' %}" class="btn btn-primary btn-sm btn-glow">
+                        <i class="fa-solid fa-plus"></i> Add Habit
+                    </a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Notifications / Messages -->
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible animate-slide-in">
+                    <div class="alert-content">
+                        <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'error' or message.tags == 'danger' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button class="alert-close-btn" onclick="this.parentElement.remove();">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- View-specific Content -->
+            <div class="content-body">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="{% static 'tracker/tracker.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

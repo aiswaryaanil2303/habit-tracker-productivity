@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - HabitGrow</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'tracker/styles.css' %}">
+</head>
+<body class="auth-body">
+    <div class="auth-container animate-fade-in">
+        <div class="auth-card glass-panel">
+            <div class="auth-header">
+                <div class="auth-brand">
+                    <i class="fa-solid fa-square-check brand-icon animate-pulse"></i>
+                    <h2>HabitGrow</h2>
+                </div>
+                <h1>Create Account</h1>
+                <p class="subtitle">Join today and start building positive routines.</p>
+            </div>
+
+            <!-- Messages display inside card -->
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible animate-slide-in">
+                    <div class="alert-content">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" class="custom-form mt-4">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="form-group {% if field.errors %}has-error{% endif %}">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <div class="input-icon-wrapper">
+                        {% if field.name == 'username' %}
+                            <i class="fa-regular fa-user input-icon"></i>
+                        {% elif field.name == 'email' %}
+                            <i class="fa-regular fa-envelope input-icon"></i>
+                        {% else %}
+                            <i class="fa-solid fa-lock input-icon"></i>
+                        {% endif %}
+                        {{ field }}
+                    </div>
+                    {% for error in field.errors %}
+                        <span class="error-feedback">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary btn-block btn-glow mt-4">
+                    <i class="fa-solid fa-user-plus"></i> Create Account
+                </button>
+            </form>
+
+            <div class="auth-footer text-center mt-4">
+                <p class="text-muted">Already have an account? <a href="{% url 'login' %}" class="auth-action-link">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'tracker/tracker.js' %}"></script>
+</body>
+</html>

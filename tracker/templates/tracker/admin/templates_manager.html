@@ -1,0 +1,102 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Manage Templates - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="habits-header-row animate-fade-in">
+    <div>
+        <h1>Templates Manager</h1>
+        <p class="subtitle">Publish system templates and moderate user template suggestions.</p>
+    </div>
+</div>
+
+<div class="gallery-layout animate-fade-in mt-4" style="animation-delay: 0.1s;">
+    <!-- Left Column: All Templates Grid -->
+    <section class="glass-panel">
+        <div class="panel-header">
+            <h2>Public Habit Templates Directory</h2>
+            <span class="badge badge-pill badge-primary-light">{{ templates.count }} Templates</span>
+        </div>
+
+        <div class="template-grid" style="grid-template-columns: 1fr; gap:1.2rem;">
+            {% if templates %}
+                {% for t in templates %}
+                <div class="habit-card glass-panel template-card status-{{ t.template_status }}" style="min-height: auto; padding: 1.2rem;">
+                    <div class="habit-card-header">
+                        <div>
+                            <span class="category-badge category-{{ t.category }}">
+                                {{ t.get_category_display }}
+                            </span>
+                            <span class="badge badge-pill {% if t.template_status == 'approved' %}badge-active{% elif t.template_status == 'pending' %}badge-warning{% else %}badge-blocked{% endif %}" style="margin-left: 0.5rem; font-size: 0.65rem;">
+                                {{ t.get_template_status_display }}
+                            </span>
+                        </div>
+                        <div class="habit-meta" style="margin-top:0;">
+                            <span class="meta-item"><i class="fa-solid fa-user"></i> {{ t.user.username }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="habit-card-body mt-2">
+                        <h3 style="font-size:1.15rem; color:#fff;">{{ t.title }}</h3>
+                        {% if t.description %}
+                            <p class="text-muted mt-1" style="font-size:0.85rem;">{{ t.description }}</p>
+                        {% endif %}
+                        <div class="habit-meta mt-2">
+                            <span class="meta-item"><i class="fa-regular fa-clock"></i> {{ t.reminder_time|default:"Any time" }}</span>
+                            <span class="meta-item"><i class="fa-solid fa-calendar-day"></i> {{ t.get_goal_type_display }} ({{ t.goal_value }}x)</span>
+                        </div>
+                    </div>
+
+                    {% if t.template_status == 'pending' %}
+                    <div class="form-actions mt-3 pt-3 border-top justify-content-end">
+                        <form action="{% url 'admin_template_status' t.id %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="approved">
+                            <button type="submit" class="btn btn-primary btn-sm btn-glow">
+                                <i class="fa-solid fa-check"></i> Approve
+                            </button>
+                        </form>
+                        <form action="{% url 'admin_template_status' t.id %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="rejected">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fa-solid fa-xmark"></i> Reject
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state text-center py-4">
+                    <i class="fa-solid fa-box-open fa-2x text-muted mb-2"></i>
+                    <p class="text-muted">No templates defined yet. Add a template on the right side panel!</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Right Column: Create template directly -->
+    <aside class="glass-panel">
+        <div class="panel-header">
+            <h2>Add Public Template</h2>
+        </div>
+        <form method="post" class="custom-form">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <span class="error-feedback">{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn btn-primary btn-block btn-glow mt-3">
+                <i class="fa-solid fa-plus"></i> Publish Template
+            </button>
+        </form>
+    </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}{{ target_user.username }}'s Productivity Report - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <a href="{% url 'admin_users' %}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to User Directory</a>
+</div>
+
+<!-- Profile Banner -->
+<div class="glass-panel report-profile-banner animate-fade-in mt-2" style="animation-delay: 0.05s;">
+    <div class="profile-avatar-large" style="background-color: {{ target_user.profile.avatar_color }}; width: 80px; height: 80px; font-size: 2.2rem;">
+        {{ target_user.username|slice:":1"|upper }}
+    </div>
+    <div>
+        <h1 style="font-size: 1.8rem; margin-bottom: 0.2rem;">Productivity Report: {{ target_user.username }}</h1>
+        <p class="subtitle">
+            Joined: {{ target_user.date_joined|date:"F d, Y" }} | 
+            Email: {{ target_user.email|default:"No email set" }} |
+            Status: {% if target_user.is_active %}<span class="text-success">Active</span>{% else %}<span class="text-danger">Blocked</span>{% endif %}
+        </p>
+        {% if target_user.profile.bio %}
+            <p class="mt-2 text-muted" style="font-size:0.9rem; font-style:italic;">"{{ target_user.profile.bio }}"</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid animate-fade-in" style="animation-delay: 0.1s;">
+    <!-- Stat 1: Total habits -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-primary-light">
+            <i class="fa-solid fa-list-check text-primary"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Total Habits Tracked</h3>
+            <span class="stat-number">{{ total_habits }}</span>
+            <p class="stat-desc">Active in checklist</p>
+        </div>
+    </div>
+    
+    <!-- Stat 2: Completed Today -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-success-light">
+            <i class="fa-solid fa-calendar-check text-success"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Completed Today</h3>
+            <span class="stat-number">{{ completed_today_count }}</span>
+            <p class="stat-desc">{{ completion_percentage }}% completion rate today</p>
+        </div>
+    </div>
+
+    <!-- Stat 3: Avg Productivity -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-warning-light">
+            <i class="fa-solid fa-gauge-high text-warning"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Average Performance</h3>
+            <span class="stat-number">{{ avg_productivity }}%</span>
+            <p class="stat-desc">Completion efficiency (30 days)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Habits list table -->
+<div class="glass-panel animate-fade-in mt-4" style="animation-delay: 0.15s; padding: 1.5rem;">
+    <div class="panel-header">
+        <h2>Habit Directory & Performance Log</h2>
+        <span class="badge badge-pill badge-primary-light">{{ total_habits }} Habits</span>
+    </div>
+    
+    {% if habit_details %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Habit Title</th>
+                        <th>Category</th>
+                        <th>Frequency</th>
+                        <th>Completed Today</th>
+                        <th>Current Streak</th>
+                        <th>Best Streak</th>
+                        <th>30-Day Efficiency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in habit_details %}
+                    <tr>
+                        <td>
+                            <strong class="text-white">{{ h.object.title }}</strong>
+                            {% if h.object.description %}
+                                <p class="text-muted" style="font-size:0.75rem; margin-top:0.1rem;">{{ h.object.description }}</p>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="category-badge category-{{ h.object.category }}">
+                                {{ h.object.get_category_display }}
+                            </span>
+                        </td>
+                        <td>{{ h.object.get_goal_type_display }} ({{ h.object.goal_value }}x)</td>
+                        <td>
+                            {% if h.completed_today %}
+                                <span class="text-success"><i class="fa-solid fa-circle-check"></i> Yes</span>
+                            {% else %}
+                                <span class="text-muted"><i class="fa-regular fa-circle"></i> No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-warning font-weight-bold">
+                                <i class="fa-solid fa-fire"></i> {{ h.streak }} days
+                            </span>
+                        </td>
+                        <td><i class="fa-solid fa-trophy text-accent"></i> {{ h.best_streak }} days</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <strong class="text-white">{{ h.rate }}%</strong>
+                                <div class="progress-bar-container" style="position:relative; display:inline-block; width:80px; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; vertical-align:middle; margin-left:0.5rem;">
+                                    <div class="progress-bar-fill {% if h.rate > 70 %}bg-success{% elif h.rate > 40 %}bg-warning{% else %}bg-primary{% endif %}" style="width:{{ h.rate }}%; height:100%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state text-center py-5">
+            <i class="fa-solid fa-leaf fa-3x text-muted mb-3"></i>
+            <h3>No habits logged</h3>
+            <p class="text-muted">This user has not set up any habits to track yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

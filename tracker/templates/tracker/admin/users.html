@@ -1,0 +1,103 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}User Management - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="habits-header-row animate-fade-in">
+    <div>
+        <h1>User Management</h1>
+        <p class="subtitle">Search, manage, block, and analyze registered users.</p>
+    </div>
+    <a href="{% url 'admin_user_create' %}" class="btn btn-primary btn-glow">
+        <i class="fa-solid fa-user-plus"></i> Add New User
+    </a>
+</div>
+
+<!-- Search Panel -->
+<div class="glass-panel filters-bar animate-fade-in mt-4" style="animation-delay: 0.1s;">
+    <form method="get" class="search-form">
+        <div class="input-icon-wrapper">
+            <i class="fa-solid fa-magnifying-glass input-icon"></i>
+            <input type="text" name="q" value="{{ query }}" class="form-control field-with-icon" placeholder="Search users by name, email or username...">
+        </div>
+    </form>
+    {% if query %}
+        <div class="filter-actions-group">
+            <span class="text-muted">Found {{ users.count }} match(es)</span>
+            <a href="{% url 'admin_users' %}" class="btn btn-secondary btn-sm">Clear Search</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Users Table -->
+<div class="glass-panel animate-fade-in mt-4" style="animation-delay: 0.15s; padding: 1rem;">
+    {% if users %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Date Joined</th>
+                        <th>Role & Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>
+                            <strong class="text-white">{{ u.username }}</strong>
+                            {% if u.id == request.user.id %}
+                                <span class="badge badge-pill badge-primary-light" style="font-size:0.6rem; padding:0.1rem 0.4rem;">You</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.first_name }} {{ u.last_name }}</td>
+                        <td>{{ u.email|default:"—" }}</td>
+                        <td>{{ u.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge badge-pill badge-active">Active</span>
+                            {% else %}
+                                <span class="badge badge-pill badge-blocked">Blocked</span>
+                            {% endif %}
+                            
+                            {% if u.is_staff %}
+                                <span class="badge badge-pill badge-staff">Staff</span>
+                            {% endif %}
+                        </td>
+                        <td class="actions-cell">
+                            <!-- Productivity Report -->
+                            <a href="{% url 'admin_user_report' u.id %}" class="btn-icon btn-report" title="Productivity Report">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </a>
+                            <!-- Edit User details -->
+                            <a href="{% url 'admin_user_edit' u.id %}" class="btn-icon btn-edit" title="Edit User Details">
+                                <i class="fa-solid fa-user-pen"></i>
+                            </a>
+                            <!-- Reset Password -->
+                            <a href="{% url 'admin_user_password_reset' u.id %}" class="btn-icon btn-reset" title="Reset Password">
+                                <i class="fa-solid fa-key"></i>
+                            </a>
+                            <!-- Delete User (Disable delete for current admin user) -->
+                            {% if u.id != request.user.id %}
+                            <a href="{% url 'admin_user_delete' u.id %}" class="btn-icon btn-delete" title="Delete User">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state text-center py-5">
+            <i class="fa-solid fa-user-slash fa-3x text-muted mb-3"></i>
+            <h3>No users found</h3>
+            <p class="text-muted">Try refining your search keyword.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

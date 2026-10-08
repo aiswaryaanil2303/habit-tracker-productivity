@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - HabitGrow</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'tracker/styles.css' %}">
+</head>
+<body class="auth-body">
+    <div class="auth-container animate-fade-in">
+        <div class="auth-card glass-panel">
+            <div class="auth-header">
+                <div class="auth-brand">
+                    <i class="fa-solid fa-square-check brand-icon animate-pulse"></i>
+                    <h2>HabitGrow</h2>
+                </div>
+                <h1>Sign In</h1>
+                <p class="subtitle">Welcome back! Sign in to keep tracking your habits.</p>
+            </div>
+
+            <!-- Messages display inside card -->
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible animate-slide-in">
+                    <div class="alert-content">
+                        <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" class="custom-form mt-4">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label class="form-label" for="id_username">Username</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-regular fa-user input-icon"></i>
+                        <input type="text" name="username" id="id_username" class="form-control field-with-icon" placeholder="Username" required autofocus>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-row">
+                        <label class="form-label" for="id_password">Password</label>
+                        <a href="{% url 'forgot_password' %}" class="form-link">Forgot password?</a>
+                    </div>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" name="password" id="id_password" class="form-control field-with-icon" placeholder="Password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-glow mt-4">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                </button>
+            </form>
+
+            <div class="auth-footer text-center mt-4">
+                <p class="text-muted">Don't have an account? <a href="{% url 'register' %}" class="auth-action-link">Register here</a></p>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'tracker/tracker.js' %}"></script>
+</body>
+</html>

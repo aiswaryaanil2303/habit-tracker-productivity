@@ -1,0 +1,92 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}My Habits - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="habits-header-row animate-fade-in">
+    <div>
+        <h1>My Habits</h1>
+        <p class="subtitle">Manage, review, and customize your routine here.</p>
+    </div>
+    <a href="{% url 'habit_create' %}" class="btn btn-primary btn-glow">
+        <i class="fa-solid fa-plus"></i> Create New Habit
+    </a>
+</div>
+
+<div class="habits-container animate-fade-in" style="animation-delay: 0.1s;">
+    {% if habits %}
+        <div class="habits-grid">
+            {% for item in habits %}
+            <div class="habit-card glass-panel {% if not item.object.is_active %}inactive{% endif %}">
+                <div class="habit-card-header">
+                    <span class="category-badge category-{{ item.object.category }}">
+                        {{ item.object.get_category_display }}
+                    </span>
+                    <div class="habit-card-actions">
+                        <a href="{% url 'habit_edit' item.object.id %}" class="card-action-btn edit-btn" title="Edit Habit">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
+                        <a href="{% url 'habit_delete' item.object.id %}" class="card-action-btn delete-btn" title="Delete Habit">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="habit-card-body">
+                    <h3 class="habit-card-title">{{ item.object.title }}</h3>
+                    {% if item.object.description %}
+                        <p class="habit-card-desc">{{ item.object.description }}</p>
+                    {% else %}
+                        <p class="habit-card-desc text-muted">No description provided.</p>
+                    {% endif %}
+                    
+                    <div class="habit-card-goals">
+                        <div class="goal-item">
+                            <span class="goal-label">Goal Target</span>
+                            <span class="goal-value">{{ item.object.goal_value }}x / {{ item.object.get_goal_type_display }}</span>
+                        </div>
+                        {% if item.object.reminder_time %}
+                        <div class="goal-item">
+                            <span class="goal-label">Reminder</span>
+                            <span class="goal-value"><i class="fa-regular fa-clock"></i> {{ item.object.reminder_time|time:"g:i A" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="habit-card-footer">
+                    <div class="stat-mini">
+                        <i class="fa-solid fa-fire text-warning"></i>
+                        <div class="stat-mini-info">
+                            <span class="stat-mini-val">{{ item.streak }}d</span>
+                            <span class="stat-mini-lbl">Current Streak</span>
+                        </div>
+                    </div>
+                    <div class="stat-mini">
+                        <i class="fa-solid fa-trophy text-accent"></i>
+                        <div class="stat-mini-info">
+                            <span class="stat-mini-val">{{ item.best_streak }}d</span>
+                            <span class="stat-mini-lbl">Best Streak</span>
+                        </div>
+                    </div>
+                    <div class="stat-mini">
+                        <i class="fa-solid fa-chart-line text-success"></i>
+                        <div class="stat-mini-info">
+                            <span class="stat-mini-val">{{ item.rate }}%</span>
+                            <span class="stat-mini-lbl">30-day Completion</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state glass-panel">
+            <i class="fa-solid fa-leaf empty-icon"></i>
+            <h2>No Habits Created Yet</h2>
+            <p>Ready to start building consistency? Click the button below to create your first habit.</p>
+            <a href="{% url 'habit_create' %}" class="btn btn-primary">Create Your First Habit</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

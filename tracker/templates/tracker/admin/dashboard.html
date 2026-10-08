@@ -1,0 +1,217 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Admin Dashboard - HabitGrow{% endblock %}
+
+{% block content %}
+<div class="dashboard-header animate-fade-in">
+    <div>
+        <h1>System Admin Dashboard</h1>
+        <p class="subtitle">Real-time stats and metrics across all registered users.</p>
+    </div>
+</div>
+
+<!-- High Level Admin Metrics -->
+<div class="stats-grid animate-fade-in mt-4" style="animation-delay: 0.1s;">
+    <!-- Stat 1: Total Users -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-primary-light">
+            <i class="fa-solid fa-users text-primary"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Total Registered Users</h3>
+            <span class="stat-number">{{ total_users }}</span>
+            <p class="stat-desc">{{ active_users }} active accounts</p>
+        </div>
+    </div>
+    
+    <!-- Stat 2: Total Habits -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-warning-light">
+            <i class="fa-solid fa-bars-progress text-warning"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Total Habits Created</h3>
+            <span class="stat-number">{{ total_habits }}</span>
+            <p class="stat-desc">Excludes system templates</p>
+        </div>
+    </div>
+
+    <!-- Stat 3: Completions Today -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-success-light">
+            <i class="fa-solid fa-circle-check text-success"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Completions Today</h3>
+            <span class="stat-number">{{ completions_today }}</span>
+            <p class="stat-desc">Checked off today</p>
+        </div>
+    </div>
+
+    <!-- Stat 4: System Productivity -->
+    <div class="stat-card glass-panel">
+        <div class="stat-card-icon bg-primary-light" style="background: rgba(139, 92, 246, 0.15)">
+            <i class="fa-solid fa-gauge-high text-accent"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>System Productivity</h3>
+            <span class="stat-number">{{ system_productivity }}%</span>
+            <p class="stat-desc">Avg completion rate (30 days)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Registration vs Completion Grid -->
+<div class="stats-grid animate-fade-in" style="animation-delay: 0.15s; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+    <div class="glass-panel text-center">
+        <h4 class="text-muted text-uppercase" style="font-size:0.75rem;">New Users (7 Days)</h4>
+        <h2 class="mt-2 text-primary" style="font-size:2rem;">+{{ new_users_7d }}</h2>
+    </div>
+    <div class="glass-panel text-center">
+        <h4 class="text-muted text-uppercase" style="font-size:0.75rem;">New Users (30 Days)</h4>
+        <h2 class="mt-2 text-primary" style="font-size:2rem;">+{{ new_users_30d }}</h2>
+    </div>
+    <div class="glass-panel text-center">
+        <h4 class="text-muted text-uppercase" style="font-size:0.75rem;">Completions (7 Days)</h4>
+        <h2 class="mt-2 text-success" style="font-size:2rem;">{{ completions_7d }}</h2>
+    </div>
+    <div class="glass-panel text-center">
+        <h4 class="text-muted text-uppercase" style="font-size:0.75rem;">Completions (30 Days)</h4>
+        <h2 class="mt-2 text-success" style="font-size:2rem;">{{ completions_30d }}</h2>
+    </div>
+</div>
+
+<!-- Graphs Panel -->
+<div class="charts-grid animate-fade-in" style="animation-delay: 0.2s;">
+    <!-- Graph 1: User Registrations -->
+    <div class="glass-panel chart-card">
+        <div class="panel-header">
+            <h2>User Registration Activity</h2>
+            <i class="fa-solid fa-chart-line text-primary"></i>
+        </div>
+        <div class="chart-container">
+            <canvas id="registrationChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Graph 2: Habit Completions -->
+    <div class="glass-panel chart-card">
+        <div class="panel-header">
+            <h2>Habit Completions Trend</h2>
+            <i class="fa-solid fa-chart-bar text-success"></i>
+        </div>
+        <div class="chart-container">
+            <canvas id="completionsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Graph 3: Habit Categories distribution -->
+    <div class="glass-panel chart-card" style="grid-column: span 1;">
+        <div class="panel-header">
+            <h2>Habits by Category</h2>
+            <i class="fa-solid fa-chart-pie text-accent"></i>
+        </div>
+        <div class="chart-container" style="max-height:260px;">
+            <canvas id="categoriesChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Load Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Parse context values
+        const regLabels = {{ registration_labels_json|safe }};
+        const regData = {{ registration_data_json|safe }};
+        
+        const compLabels = {{ completion_labels_json|safe }};
+        const compData = {{ completion_data_json|safe }};
+        
+        const catLabels = {{ category_labels_json|safe }};
+        const catData = {{ category_counts_json|safe }};
+
+        // Theme-friendly shared configurations
+        const fontColor = '#94a3b8';
+        const gridColor = 'rgba(255, 255, 255, 0.05)';
+
+        // 1. User Registrations Chart (Line)
+        new Chart(document.getElementById('registrationChart'), {
+            type: 'line',
+            data: {
+                labels: regLabels,
+                datasets: [{
+                    label: 'Registrations',
+                    data: regData,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#6366f1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: fontColor }, grid: { color: gridColor } },
+                    y: { ticks: { color: fontColor, stepSize: 1 }, grid: { color: gridColor } }
+                }
+            }
+        });
+
+        // 2. Completions Trend Chart (Bar)
+        new Chart(document.getElementById('completionsChart'), {
+            type: 'bar',
+            data: {
+                labels: compLabels,
+                datasets: [{
+                    label: 'Completions',
+                    data: compData,
+                    backgroundColor: '#10b981',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: fontColor }, grid: { color: gridColor } },
+                    y: { ticks: { color: fontColor, stepSize: 1 }, grid: { color: gridColor } }
+                }
+            }
+        });
+
+        // 3. Category Breakdown (Doughnut)
+        new Chart(document.getElementById('categoriesChart'), {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catData,
+                    backgroundColor: [
+                        '#10b981', '#3b82f6', '#f59e0b', '#eab308', 
+                        '#a855f7', '#ec4899', '#64748b'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: fontColor, font: { family: 'Outfit', size: 11 } }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
