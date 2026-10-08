@@ -26,3 +26,7 @@ db.sqlite3
 
 # Django database
 db.sqlite3
+
+
+# Separate project
+birthday_website/
